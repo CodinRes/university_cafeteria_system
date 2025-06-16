@@ -1,0 +1,43 @@
+sequenceDiagram
+actor cliente as Cliente no Becado
+participant sistema as Sistema
+participant pagos as Pagos-UNNE
+participant cuenta as Cuenta del Cliente
+
+activate cliente
+activate sistema
+cliente->>sistema: Selecciona “Cargar crédito”.
+sistema-->>cliente: Muestra campo para ingreso de importe.
+cliente->>sistema: Ingresa importe.
+sistema->>+pagos: Verifica importe.
+pagos->>pagos: Valida importe.
+alt Importe inválido
+    pagos -->>- sistema: Informa error de importe.
+    sistema -->> cliente: Muestra mensaje: “Debe ingresar un importe mayor a 20”.
+    sistema -->> cliente: Ir a 2.
+else Importe válido
+    activate pagos
+    pagos -->>- sistema: Informa importe válido.
+    sistema -->> cliente: Muestra mensaje: “Seleccione método de pago”.
+end
+sistema-->>cliente: Muestra opciones de pago.
+cliente->>sistema: Selecciona método de pago.
+sistema-->>cliente: redicciona a página de pagos-UNNE.
+alt cancelar operacion
+    cliente ->> sistema:Cancela la operación.
+    sistema -->> cliente: fin de caso de uso.
+    deactivate cliente
+    deactivate sistema
+else confirmacion de pago
+    activate cliente
+    activate sistema
+    cliente ->> sistema:Confirma la carga del importe seleccionado.
+    sistema-->>cliente: envia correo de confirmación de operación con comprobante.
+    sistema->>+pagos: enviar carga del importe.
+    pagos-->>-sistema: confirma operacion.
+end
+sistema->>+ cuenta: Actualiza cuenta del cliente.
+cuenta ->>- cuenta: Actualiza el saldo del cliente y registra la carga de crédito.
+sistema -->> cliente: Muestra detalle de operación con saldo actualizado.
+deactivate cliente
+deactivate sistema

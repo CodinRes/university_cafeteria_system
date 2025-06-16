@@ -1,0 +1,72 @@
+sequenceDiagram
+actor cliente as Cliente No becado
+participant sistema as Sistema
+participant sede as Sede del comedor
+participant infoCliente as Cliente
+
+activate cliente
+activate sistema
+cliente ->> sistema: Selecciona “Comprar ticket” 
+sistema -->> cliente: Muestra opciones de Sede del Comedor Universitario
+cliente ->> sistema: Selecciona una Sede.
+sistema ->>+ sede:  Verifica disponibilidad de ración en la sede seleccionada.
+
+alt sin raciones
+    sede ->> sede: verifica disponibilidad de ración.
+    sede -->> sistema: No quedan raciones disponibles.
+    sistema -->> cliente: Muestra mensaje: “Agotado. Ya no quedan raciones disponibles” 
+    deactivate sistema
+    deactivate cliente
+    deactivate sede
+else racion disponible
+    activate sistema
+    activate cliente
+    activate sede
+    sede ->> sede: verifica disponibilidad de ración.
+    sede -->>- sistema: Queda al menos una ración disponible.
+    sistema -->> cliente: Muestra fecha y Menú del día.
+    sistema -->> cliente: Habilita opción “Comprar”.
+end
+
+cliente ->> sistema: Presiona “Comprar”
+sistema ->>+ infoCliente: Verifica si el cliente no tiene  compra registrada en el día.
+
+alt registra compra en el dia
+    infoCliente ->> infoCliente: Verifica compras de cliente.
+    infoCliente -->> sistema: Cliente registra compra en el día. 
+    sistema -->> cliente: Muestra mensaje: “Ud. ya realizó una compra!. Límite alcanzado: 1 ticket por día” 
+    deactivate sistema
+    deactivate cliente
+    deactivate infoCliente
+else no registra compra en el dia
+    activate sistema
+    activate cliente
+    activate infoCliente
+    infoCliente ->> infoCliente: Verifica compras de cliente.
+    infoCliente -->> sistema: No tiene compras registradas en el dia.
+end
+
+sistema ->> infoCliente: Verifica el estado del beneficio Beca Comedor del cliente. 
+
+alt saldo insuficiente
+    infoCliente ->> infoCliente: Verifica beneficio del cliente.
+    infoCliente -->> sistema: El cliente fué dado de baja en el beneficio de Beca Comedor. 
+    sistema -->> cliente: Muestra mensaje “Ud ya es no es beneficiario de Beca Comedor. Debe realizar carga de crédito para comprar ticket”.
+    deactivate sistema
+    deactivate cliente
+    deactivate infoCliente
+else saldo suficiente
+    activate sistema
+    activate cliente
+    activate infoCliente
+    infoCliente ->> infoCliente: Verifica beneficio del cliente.
+    infoCliente -->>- sistema: El cliente está activo en el beneficio de Beca Comedor.
+    sistema ->>+ sede: informa de beneficio activo.
+    sede ->>- sede: Registra la reserva de la ración. 
+    sistema -->> sistema: Genera comprobante con QR para el retiro de ración. 
+    sistema -->> cliente: Envía comprobante por email.
+end
+
+sistema -->> cliente: Muestra comprobante de reserva con mensaje “Recuerde no superar 5 inasistencia injustificadas para conservar beneficio” 
+deactivate cliente
+deactivate sistema

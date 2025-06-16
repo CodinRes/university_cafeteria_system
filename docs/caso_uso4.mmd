@@ -1,0 +1,47 @@
+sequenceDiagram
+actor usuario as Usuario del sistema
+participant sistema as Sistema
+participant perfil as Perfil del usuario
+
+activate usuario
+activate sistema
+usuario ->> sistema: Ingresa a “Mi Perfil”
+sistema -->> usuario: Muestra menú con opciones de selección.
+usuario ->> sistema: Selecciona “Editar Perfil”
+sistema ->> perfil: solicita datos de perfil
+perfil ->> perfil: busca perfil del usuario
+perfil -->> sistema: retorna datos de perfil del usuario
+sistema -->> usuario: Muestra datos de perfil no editables, campos con datos de perfil actuales editables y opción “Guardar”
+usuario ->> usuario: Edita campos con datos nuevos de perfil.
+usuario ->> sistema: Selecciona “Guardar”
+
+alt datos invalidos
+    sistema ->> perfil: envia datos para validar
+    perfil ->> perfil: Valida datos ingresados
+    perfil -->> sistema: Campos editados con al menos un dato inválido. 
+    sistema -->> usuario: Muestra mensaje de error en el campo/s del/ los dato/s inválido/s.
+    sistema -->> usuario: ir a 5
+else datos validos
+    sistema ->> perfil: envia datos para validar
+    perfil ->> perfil: Valida datos ingresados
+    perfil -->> sistema: Campos editados con datos válidos.
+end
+
+sistema -->> usuario: Solicita confirmación al usuario.
+
+alt cancela actualización
+    usuario ->> sistema: Cancela actualización 
+    deactivate usuario
+    deactivate sistema
+else confirma actualización
+    activate usuario
+    activate sistema
+    usuario ->> sistema: Confirma actualización
+end
+
+sistema ->> perfil: envia nuevos datos de perfil
+perfil ->> perfil: Actualiza datos del perfil del usuario
+sistema -->> usuario: Muestra mensaje de confirmación de actualización con datos perfil actualizados.
+
+deactivate usuario
+deactivate sistema
